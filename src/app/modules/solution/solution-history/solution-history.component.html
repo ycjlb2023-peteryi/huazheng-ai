@@ -1,0 +1,144 @@
+<div class="solution-history">
+  <app-page-header 
+    title="历史方案记录" 
+    subtitle="查看和管理所有生成的技术方案"
+  >
+    <div actions>
+      <button class="btn btn-primary" (click)="createNew()">
+        <span>⚡</span>
+        <span>生成新方案</span>
+      </button>
+    </div>
+  </app-page-header>
+  
+  <div class="history-content">
+    <!-- 统计卡片 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">全部方案</span>
+        <span class="stat-value">{{ stats().total }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">已完成</span>
+        <span class="stat-value success">{{ stats().completed }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-label">草稿</span>
+        <span class="stat-value warning">{{ stats().draft }}</span>
+      </div>
+    </div>
+    
+    <!-- 筛选栏 -->
+    <div class="filter-bar card">
+      <div class="search-box">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="搜索方案..."
+          [value]="searchKeyword()"
+          (input)="updateSearchKeyword($any($event.target).value)"
+        />
+      </div>
+      
+      <div class="filter-buttons">
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter() === 'all'"
+          (click)="updateFilter('all')"
+        >
+          全部
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter() === 'completed'"
+          (click)="updateFilter('completed')"
+        >
+          已完成
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter() === 'draft'"
+          (click)="updateFilter('draft')"
+        >
+          草稿
+        </button>
+      </div>
+    </div>
+    
+    <!-- 方案列表 -->
+    @if (filteredSolutions().length > 0) {
+      <div class="solutions-grid">
+        @for (solution of filteredSolutions(); track solution.id) {
+          <div class="solution-card card fade-in" [style.animation-delay]="$index * 0.05 + 's'">
+            <div class="card-header">
+              <div class="card-icon">📄</div>
+              <div class="card-meta">
+                <span class="card-time">{{ formatDate(solution.createdAt) }}</span>
+                @if (solution.status === 'completed') {
+                  <span class="badge badge-success">已完成</span>
+                } @else {
+                  <span class="badge badge-warning">草稿</span>
+                }
+              </div>
+            </div>
+            
+            <div class="card-body">
+              <h3 class="card-title text-ellipsis-2">{{ solution.productJudgment }}</h3>
+              
+              <div class="card-stats">
+                <div class="stat-chip">
+                  <span class="chip-icon">✅</span>
+                  <span class="chip-text">{{ solution.recommendedConfig.standard.length }}项标配</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="chip-icon">🔸</span>
+                  <span class="chip-text">{{ solution.recommendedConfig.optional.length }}项选配</span>
+                </div>
+                <div class="stat-chip">
+                  <span class="chip-icon">❓</span>
+                  <span class="chip-text">{{ solution.questionsForCustomer.length }}个问题</span>
+                </div>
+              </div>
+              
+              <div class="card-preview">
+                <h4 class="preview-title">技术依据</h4>
+                <div class="preview-tags">
+                  @for (basis of solution.technicalBasis.slice(0, 2); track basis) {
+                    <span class="preview-tag text-ellipsis">{{ basis }}</span>
+                  }
+                  @if (solution.technicalBasis.length > 2) {
+                    <span class="preview-tag more">+{{ solution.technicalBasis.length - 2 }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-footer">
+              <button class="btn btn-sm btn-primary" (click)="viewSolution(solution.id)">
+                查看详情
+              </button>
+              <button class="btn-icon btn-danger" (click)="deleteSolution(solution.id, $event)" title="删除">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5 3a1 1 0 011-1h4a1 1 0 011 1v1h3a1 1 0 110 2h-1v7a2 2 0 01-2 2H5a2 2 0 01-2-2V6H2a1 1 0 110-2h3V3zm2 2h2V4H7v1zm1 3a1 1 0 00-1 1v3a1 1 0 102 0V9a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <app-empty-state
+        title="没有找到方案"
+        [description]="searchKeyword() ? '试试其他搜索关键词' : '还没有生成任何方案'"
+        [actionText]="!searchKeyword() ? '生成新方案' : ''"
+        (action)="createNew()"
+      />
+    }
+  </div>
+</div>
+

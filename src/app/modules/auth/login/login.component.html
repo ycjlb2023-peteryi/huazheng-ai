@@ -1,0 +1,105 @@
+<div class="login-container">
+  <div class="login-background">
+    <div class="bg-gradient"></div>
+    <div class="bg-pattern"></div>
+  </div>
+  
+  <div class="login-content">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="12" fill="url(#gradient)"/>
+            <path d="M24 12L32 20H28V28H20V20H16L24 12Z" fill="white"/>
+            <path d="M16 32H32V36H16V32Z" fill="white"/>
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
+                <stop offset="0%" stop-color="#2563eb"/>
+                <stop offset="100%" stop-color="#1e40af"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="login-title">铧正外贸AI系统</h1>
+        <p class="login-subtitle">专业技术方案数字员工</p>
+      </div>
+      
+      <form class="login-form" (submit)="onSubmit(); $event.preventDefault()">
+        <div class="form-group">
+          <label class="form-label">用户名</label>
+          <input
+            type="text"
+            class="input"
+            [class.error]="errorMessage()"
+            placeholder="请输入用户名"
+            [value]="username()"
+            (input)="updateUsername($any($event.target).value)"
+            [disabled]="isLoading()"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input
+            type="password"
+            class="input"
+            [class.error]="errorMessage()"
+            placeholder="请输入密码"
+            [value]="password()"
+            (input)="updatePassword($any($event.target).value)"
+            [disabled]="isLoading()"
+          />
+        </div>
+        
+        @if (errorMessage()) {
+          <div class="error-message">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1C4.13 1 1 4.13 1 8s3.13 7 7 7 7-3.13 7-7-3.13-7-7-7zm0 13c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm-.5-9h1v5h-1V5zm0 6h1v1h-1v-1z"/>
+            </svg>
+            {{ errorMessage() }}
+          </div>
+        }
+        
+        <button
+          type="submit"
+          class="btn btn-primary btn-lg btn-full"
+          [disabled]="isLoading()"
+        >
+          @if (isLoading()) {
+            <span class="spinner"></span>
+            <span>登录中...</span>
+          } @else {
+            <span>登录</span>
+          }
+        </button>
+      </form>
+      
+      <div class="login-footer">
+        <div class="demo-tips">
+          <p class="tips-title">演示账号</p>
+          <p class="tips-content">管理员: admin / 任意密码</p>
+          <p class="tips-content">业务员: user / 任意密码</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="features">
+      <div class="feature-item fade-in" style="animation-delay: 0.1s">
+        <div class="feature-icon">⚡</div>
+        <h3>秒级响应</h3>
+        <p>3分钟内生成专业技术方案</p>
+      </div>
+      <div class="feature-item fade-in" style="animation-delay: 0.2s">
+        <div class="feature-icon">🎯</div>
+        <h3>精准方案</h3>
+        <p>基于企业知识库与国家标准</p>
+      </div>
+      <div class="feature-item fade-in" style="animation-delay: 0.3s">
+        <div class="feature-icon">🌐</div>
+        <h3>双语输出</h3>
+        <p>自动生成中英文客户回复</p>
+      </div>
+    </div>
+  </div>
+</div>
+

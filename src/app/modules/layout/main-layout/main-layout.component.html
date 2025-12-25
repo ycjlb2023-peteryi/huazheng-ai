@@ -1,0 +1,96 @@
+<div class="layout-container">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed()">
+    <div class="sidebar-header">
+      <div class="logo">
+        <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="12" fill="url(#gradient)"/>
+          <path d="M24 12L32 20H28V28H20V20H16L24 12Z" fill="white"/>
+          <path d="M16 32H32V36H16V32Z" fill="white"/>
+          <defs>
+            <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
+              <stop offset="0%" stop-color="#2563eb"/>
+              <stop offset="100%" stop-color="#1e40af"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      @if (!sidebarCollapsed()) {
+        <div class="brand">
+          <h2 class="brand-name">铧正AI</h2>
+          <p class="brand-tagline">技术方案官</p>
+        </div>
+      }
+    </div>
+    
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        @for (item of filteredNavItems(); track item.path) {
+          <li class="nav-item">
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              class="nav-link"
+              [title]="item.label"
+            >
+              <span class="nav-icon">{{ item.icon }}</span>
+              @if (!sidebarCollapsed()) {
+                <span class="nav-label">{{ item.label }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <button class="toggle-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed() ? '展开' : '收起'">
+        @if (sidebarCollapsed()) {
+          <span>→</span>
+        } @else {
+          <span>←</span>
+        }
+      </button>
+    </div>
+  </aside>
+  
+  <!-- 主内容区 -->
+  <div class="main-content">
+    <!-- 顶部导航栏 -->
+    <header class="top-header">
+      <div class="header-left">
+        <h1 class="page-breadcrumb">外贸AI技术方案系统</h1>
+      </div>
+      
+      <div class="header-right">
+        <div class="user-menu">
+          <div class="user-avatar">
+            {{ currentUser()?.username ? currentUser()!.username.charAt(0).toUpperCase() : 'U' }}
+          </div>
+          <div class="user-info">
+            <p class="user-name">{{ currentUser()?.username }}</p>
+            <p class="user-role">
+              @if (currentUser()?.role === 'admin') {
+                <span class="badge badge-primary">管理员</span>
+              } @else {
+                <span class="badge">业务员</span>
+              }
+            </p>
+          </div>
+          <button class="logout-btn" (click)="logout()" title="退出登录">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 11-2 0V4H5v12h10v-2a1 1 0 112 0v3a1 1 0 01-1 1H4a1 1 0 01-1-1V3z"/>
+              <path d="M11 10a1 1 0 011-1h5.586l-1.293-1.293a1 1 0 011.414-1.414l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L17.586 11H12a1 1 0 01-1-1z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    
+    <!-- 页面内容 -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+

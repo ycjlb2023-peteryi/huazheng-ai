@@ -1,0 +1,215 @@
+<div class="solution-generate">
+  <app-page-header 
+    title="AI技术方案生成" 
+    subtitle="输入客户需求，3分钟生成专业技术方案"
+  >
+    <div actions>
+      @if (showResult()) {
+        <button class="btn btn-secondary" (click)="resetForm()">
+          重新生成
+        </button>
+      }
+    </div>
+  </app-page-header>
+  
+  <div class="generate-content">
+    @if (!showResult()) {
+      <!-- 输入阶段 -->
+      <div class="input-section">
+        <div class="input-panel card">
+          <h3 class="panel-title">客户需求输入</h3>
+          
+          <div class="form-group">
+            <label class="form-label">客户描述（支持中英文）</label>
+            <textarea
+              class="textarea"
+              rows="8"
+              placeholder="例如：客户需要一台用于变压器油处理的滤油机，日处理量约10吨，需要达到GB/T 7595标准..."
+              [value]="customerRequirement()"
+              (input)="updateRequirement($any($event.target).value)"
+              [disabled]="isGenerating()"
+            ></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">输出语言</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="language"
+                  value="en"
+                  [checked]="selectedLanguage() === 'en'"
+                  (change)="updateLanguage('en')"
+                  [disabled]="isGenerating()"
+                />
+                <span>英文（推荐）</span>
+              </label>
+              <label class="radio-label">
+                <input
+                  type="radio"
+                  name="language"
+                  value="zh"
+                  [checked]="selectedLanguage() === 'zh'"
+                  (change)="updateLanguage('zh')"
+                  [disabled]="isGenerating()"
+                />
+                <span>中文</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="action-buttons">
+            <button
+              class="btn btn-primary btn-lg"
+              (click)="generateSolution()"
+              [disabled]="!customerRequirement().trim() || isGenerating()"
+            >
+              @if (isGenerating()) {
+                <span class="spinner"></span>
+                <span>AI生成中...</span>
+              } @else {
+                <span>⚡</span>
+                <span>生成技术方案</span>
+              }
+            </button>
+          </div>
+        </div>
+        
+        <div class="suggestions-panel card">
+          <h3 class="panel-title">💡 AI提示问题</h3>
+          <p class="panel-description">点击下方问题可快速添加到输入框</p>
+          
+          <div class="suggestions-list">
+            @for (question of suggestedQuestions(); track question) {
+              <button
+                class="suggestion-item"
+                (click)="addSuggestedQuestion(question)"
+                [disabled]="isGenerating()"
+              >
+                <span class="suggestion-icon">❓</span>
+                <span class="suggestion-text">{{ question }}</span>
+              </button>
+            }
+          </div>
+          
+          <div class="tips-box">
+            <div class="tips-icon">💡</div>
+            <div class="tips-content">
+              <p class="tips-title">使用技巧</p>
+              <ul class="tips-list">
+                <li>描述越详细，方案越精准</li>
+                <li>可以包含技术参数和标准要求</li>
+                <li>支持中英文混合输入</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- 结果展示阶段 -->
+      <div class="result-section">
+        <div class="result-layout">
+          <!-- 左侧：技术方案（内部） -->
+          <div class="result-panel card">
+            <div class="panel-header">
+              <h3 class="panel-title">🔧 技术方案（内部版）</h3>
+              <span class="badge badge-success">已生成</span>
+            </div>
+            
+            @if (currentSolution(); as solution) {
+              <div class="solution-sections">
+                <div class="solution-section">
+                  <h4 class="section-title">产品判断</h4>
+                  <p class="section-content">{{ solution.productJudgment }}</p>
+                </div>
+                
+                <div class="solution-section">
+                  <h4 class="section-title">推荐配置</h4>
+                  
+                  <div class="config-group">
+                    <h5 class="config-title">✅ 标配项目</h5>
+                    <ul class="config-list">
+                      @for (item of solution.recommendedConfig.standard; track item) {
+                        <li class="config-item">{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
+                  
+                  <div class="config-group">
+                    <h5 class="config-title">🔸 选配项目</h5>
+                    <ul class="config-list optional">
+                      @for (item of solution.recommendedConfig.optional; track item) {
+                        <li class="config-item">{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+                
+                <div class="solution-section">
+                  <h4 class="section-title">技术依据</h4>
+                  <ul class="basis-list">
+                    @for (basis of solution.technicalBasis; track basis) {
+                      <li class="basis-item">
+                        <span class="basis-icon">📄</span>
+                        <span>{{ basis }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+                
+                <div class="solution-section warning">
+                  <h4 class="section-title">⚠️ 待客户确认问题</h4>
+                  <ul class="questions-list">
+                    @for (question of solution.questionsForCustomer; track question) {
+                      <li class="question-item">{{ question }}</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            }
+          </div>
+          
+          <!-- 右侧：客户回复 -->
+          <div class="reply-panel card">
+            <div class="panel-header">
+              <h3 class="panel-title">✉️ 客户回复内容</h3>
+              <div class="export-actions">
+                @for (option of exportOptions; track option.label) {
+                  <button
+                    class="btn btn-sm btn-secondary"
+                    (click)="option.action()"
+                    [title]="option.label"
+                  >
+                    <span>{{ option.icon }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+            
+            @if (currentSolution(); as solution) {
+              <div class="reply-content">
+                <pre class="reply-text">{{ solution.customerReply }}</pre>
+              </div>
+              
+              <div class="reply-footer">
+                <p class="footer-note">
+                  ✅ 此内容可直接复制发送给客户
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+  
+  @if (isGenerating()) {
+    <app-loading-spinner
+      [fullscreen]="true"
+      text="AI正在分析需求并生成技术方案..."
+      [size]="60"
+    />
+  }
+</div>
+

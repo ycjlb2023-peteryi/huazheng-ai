@@ -1,0 +1,120 @@
+<div class="dashboard">
+  <app-page-header [title]="'欢迎回来，' + currentUser()?.username + '！'" subtitle="今天也要加油哦 🎉" />
+  
+  <div class="dashboard-content">
+    <!-- 数据统计卡片 -->
+    <div class="stats-grid">
+      @for (stat of stats(); track stat.label) {
+        <div class="stat-card fade-in" [style.animation-delay]="$index * 0.1 + 's'">
+          <div class="stat-icon" [style.background]="stat.color + '20'" [style.color]="stat.color">
+            {{ stat.icon }}
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">{{ stat.label }}</p>
+            <h3 class="stat-value">{{ stat.value }}</h3>
+          </div>
+        </div>
+      }
+    </div>
+    
+    <!-- 快捷操作 -->
+    <section class="quick-actions-section">
+      <h2 class="section-title">快速开始</h2>
+      <div class="quick-actions-grid">
+        @for (action of quickActions; track action.title) {
+          <button 
+            class="action-card fade-in"
+            [style.animation-delay]="$index * 0.1 + 's'"
+            (click)="action.action()"
+          >
+            <div class="action-icon" [style.background]="action.color + '20'" [style.color]="action.color">
+              {{ action.icon }}
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">{{ action.title }}</h3>
+              <p class="action-description">{{ action.description }}</p>
+            </div>
+            <div class="action-arrow">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </button>
+        }
+      </div>
+    </section>
+    
+    <!-- 最近方案 -->
+    <section class="recent-section">
+      <div class="section-header">
+        <h2 class="section-title">最近方案</h2>
+        <a class="view-all-link" routerLink="/solution/history">
+          查看全部 →
+        </a>
+      </div>
+      
+      @if (recentSolutions().length > 0) {
+        <div class="solutions-list">
+          @for (solution of recentSolutions(); track solution.id) {
+            <div class="solution-item fade-in" [style.animation-delay]="$index * 0.05 + 's'">
+              <div class="solution-header">
+                <div class="solution-icon">📄</div>
+                <div class="solution-meta">
+                  <h4 class="solution-title text-ellipsis">{{ solution.productJudgment }}</h4>
+                  <p class="solution-time">{{ formatDate(solution.createdAt) }}</p>
+                </div>
+                <span class="badge badge-success">已完成</span>
+              </div>
+              <div class="solution-preview">
+                <div class="preview-item">
+                  <span class="preview-label">标配项目：</span>
+                  <span class="preview-value">{{ solution.recommendedConfig.standard.length }} 项</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">选配项目：</span>
+                  <span class="preview-value">{{ solution.recommendedConfig.optional.length }} 项</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">待确认问题：</span>
+                  <span class="preview-value">{{ solution.questionsForCustomer.length }} 个</span>
+                </div>
+              </div>
+              <div class="solution-actions">
+                <button class="btn btn-sm btn-secondary" (click)="viewSolution(solution.id)">
+                  查看详情
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <app-empty-state
+          title="暂无方案记录"
+          description="点击上方【生成新方案】开始创建您的第一个技术方案"
+          actionText="生成新方案"
+          (action)="quickActions[0].action()"
+        />
+      }
+    </section>
+    
+    <!-- 使用提示 -->
+    <section class="tips-section">
+      <div class="tips-card">
+        <div class="tips-icon">💡</div>
+        <div class="tips-content">
+          <h3 class="tips-title">使用小贴士</h3>
+          <p class="tips-text">{{ tips()[currentTipIndex()] }}</p>
+        </div>
+        <div class="tips-pagination">
+          @for (tip of tips(); track $index) {
+            <span 
+              class="tip-dot" 
+              [class.active]="$index === currentTipIndex()"
+            ></span>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+

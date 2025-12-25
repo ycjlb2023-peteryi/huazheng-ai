@@ -1,0 +1,299 @@
+<div class="knowledge-manage">
+  <app-page-header 
+    title="知识库管理" 
+    subtitle="管理企业技术文档和标准资料"
+  >
+    <div actions>
+      <button class="btn btn-primary" (click)="openUploadModal()">
+        <span>📤</span>
+        <span>上传文档</span>
+      </button>
+    </div>
+  </app-page-header>
+  
+  <div class="knowledge-content">
+    <!-- 统计概览 -->
+    <div class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-info">
+          <h3 class="stat-value">{{ stats().total }}</h3>
+          <p class="stat-label">总文档数</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <h3 class="stat-value">{{ stats().active }}</h3>
+          <p class="stat-label">启用中</p>
+        </div>
+      </div>
+      @for (cat of stats().byCategory.slice(0, 3); track cat.name) {
+        <div class="stat-card">
+          <div class="stat-icon">📁</div>
+          <div class="stat-info">
+            <h3 class="stat-value">{{ cat.count }}</h3>
+            <p class="stat-label">{{ cat.name }}</p>
+          </div>
+        </div>
+      }
+    </div>
+    
+    <!-- 筛选和搜索 -->
+    <div class="filter-section card">
+      <div class="search-box">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" class="search-icon">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="搜索文档名称、分类或产品..."
+          [value]="searchKeyword()"
+          (input)="updateSearchKeyword($any($event.target).value)"
+        />
+      </div>
+      
+      <div class="category-filters">
+        <button
+          class="category-btn"
+          [class.active]="selectedCategory() === 'all'"
+          (click)="updateCategory('all')"
+        >
+          全部
+        </button>
+        @for (category of categories(); track category) {
+          <button
+            class="category-btn"
+            [class.active]="selectedCategory() === category"
+            (click)="updateCategory(category)"
+          >
+            {{ category }}
+          </button>
+        }
+      </div>
+    </div>
+    
+    <!-- 文档列表 -->
+    @if (filteredDocuments().length > 0) {
+      <div class="documents-table card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>文档名称</th>
+              <th>类型</th>
+              <th>分类</th>
+              <th>适用产品</th>
+              <th>优先级</th>
+              <th>大小</th>
+              <th>上传时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (doc of filteredDocuments(); track doc.id) {
+              <tr class="table-row fade-in" [style.animation-delay]="$index * 0.03 + 's'">
+                <td class="doc-name-cell">
+                  <div class="doc-icon">{{ getFileIcon(doc.type) }}</div>
+                  <span class="doc-name">{{ doc.name }}</span>
+                </td>
+                <td>
+                  @switch (doc.type) {
+                    @case ('pdf') { <span class="type-badge badge-pdf">PDF</span> }
+                    @case ('word') { <span class="type-badge badge-word">Word</span> }
+                    @case ('excel') { <span class="type-badge badge-excel">Excel</span> }
+                    @case ('standard') { <span class="type-badge badge-standard">标准</span> }
+                  }
+                </td>
+                <td>{{ doc.category }}</td>
+                <td>
+                  <div class="products-tags">
+                    @for (product of doc.applicableProducts.slice(0, 2); track product) {
+                      <span class="product-tag">{{ product }}</span>
+                    }
+                    @if (doc.applicableProducts.length > 2) {
+                      <span class="product-tag more">+{{ doc.applicableProducts.length - 2 }}</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <span class="priority-badge" [class.high]="doc.priority === 1">
+                    P{{ doc.priority }}
+                  </span>
+                </td>
+                <td class="size-cell">{{ formatFileSize(doc.size) }}</td>
+                <td class="date-cell">{{ formatDate(doc.uploadedAt) }}</td>
+                <td>
+                  @if (doc.status === 'active') {
+                    <span class="badge badge-success">启用</span>
+                  } @else {
+                    <span class="badge">归档</span>
+                  }
+                </td>
+                <td class="actions-cell">
+                  <button
+                    class="action-btn"
+                    (click)="toggleDocumentStatus(doc)"
+                    [title]="doc.status === 'active' ? '归档' : '启用'"
+                  >
+                    @if (doc.status === 'active') {
+                      <span>📦</span>
+                    } @else {
+                      <span>✅</span>
+                    }
+                  </button>
+                  <button
+                    class="action-btn danger"
+                    (click)="deleteDocument(doc.id)"
+                    title="删除"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <app-empty-state
+        title="没有找到文档"
+        [description]="searchKeyword() ? '试试其他搜索关键词' : '点击上方【上传文档】开始添加知识库内容'"
+        [actionText]="!searchKeyword() ? '上传文档' : ''"
+        (action)="openUploadModal()"
+      />
+    }
+  </div>
+  
+  <!-- 上传弹窗 -->
+  @if (showUploadModal()) {
+    <div class="modal-overlay" (click)="closeUploadModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">上传知识库文档</h2>
+          <button class="close-btn" (click)="closeUploadModal()">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="upload-area">
+            <input
+              type="file"
+              id="fileInput"
+              class="file-input"
+              accept=".pdf,.doc,.docx,.xls,.xlsx"
+              (change)="onFileSelect($event)"
+            />
+            <label for="fileInput" class="upload-label">
+              @if (selectedFile()) {
+                <div class="file-selected">
+                  <span class="file-icon">📄</span>
+                  <span class="file-name">{{ selectedFile()!.name }}</span>
+                  <span class="file-size">({{ formatFileSize(selectedFile()!.size) }})</span>
+                </div>
+              } @else {
+                <div class="upload-placeholder">
+                  <span class="upload-icon">📤</span>
+                  <p class="upload-text">点击选择文件或拖拽到此处</p>
+                  <p class="upload-hint">支持 PDF, Word, Excel 格式</p>
+                </div>
+              }
+            </label>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">文档名称 *</label>
+              <input
+                type="text"
+                class="input"
+                placeholder="输入文档名称"
+                [value]="uploadForm().name"
+                (input)="updateFormField('name', $any($event.target).value)"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">文档类型</label>
+              <select
+                class="input"
+                [value]="uploadForm().type"
+                (change)="updateFormField('type', $any($event.target).value)"
+              >
+                <option value="pdf">PDF文档</option>
+                <option value="word">Word文档</option>
+                <option value="excel">Excel表格</option>
+                <option value="standard">国家标准</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">文档分类 *</label>
+              <select
+                class="input"
+                [value]="uploadForm().category"
+                (change)="updateFormField('category', $any($event.target).value)"
+              >
+                @for (category of categories(); track category) {
+                  <option [value]="category">{{ category }}</option>
+                }
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">优先级</label>
+              <select
+                class="input"
+                [value]="uploadForm().priority"
+                (change)="updateFormField('priority', +$any($event.target).value)"
+              >
+                <option [value]="1">P1 - 最高</option>
+                <option [value]="2">P2 - 高</option>
+                <option [value]="3">P3 - 中</option>
+                <option [value]="4">P4 - 低</option>
+              </select>
+            </div>
+            
+            <div class="form-group full-width">
+              <label class="form-label">适用产品（逗号分隔）</label>
+              <input
+                type="text"
+                class="input"
+                placeholder="例如：滤油机, TY系列, 测试台"
+                [value]="uploadForm().applicableProducts"
+                (input)="updateFormField('applicableProducts', $any($event.target).value)"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeUploadModal()">
+            取消
+          </button>
+          <button
+            class="btn btn-primary"
+            (click)="submitUpload()"
+            [disabled]="!selectedFile() || isUploading()"
+          >
+            @if (isUploading()) {
+              <span class="spinner"></span>
+              <span>上传中...</span>
+            } @else {
+              <span>确认上传</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+  
+  @if (isUploading()) {
+    <app-loading-spinner
+      [fullscreen]="true"
+      text="正在上传文档..."
+      [size]="60"
+    />
+  }
+</div>
+
